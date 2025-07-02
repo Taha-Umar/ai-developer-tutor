@@ -1,25 +1,37 @@
 import React from 'react';
-import logo from './logo.svg';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import LoginPage from './components/LoginPage';
+import SignupPage from './components/SignupPage';
+import ChatbotInterface from './components/ChatbotInterface';
+import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <div className="App">
+        <Routes>
+          {/* Login Page - Default route */}
+          <Route path="/" element={<LoginPage />} />
+          
+          {/* Signup Page */}
+          <Route path="/signup" element={<SignupPage />} />
+          
+          {/* Protected Chatbot Interface */}
+          <Route 
+            path="/chat" 
+            element={
+              <ProtectedRoute>
+                <ChatbotInterface />
+              </ProtectedRoute>
+            } 
+          />
+          
+          {/* Fallback route - redirect to login */}
+          <Route path="*" element={<LoginPage />} />
+        </Routes>
+      </div>
+    </Router>
   );
 }
 
