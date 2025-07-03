@@ -1,46 +1,204 @@
-# Getting Started with Create React App
+# AI Developer Tutor - Backend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A powerful Node.js backend for the AI Developer Tutor platform, featuring LangGraph orchestration, real-time chat, and personalized learning experiences.
 
-## Available Scripts
+## 🚀 Features
 
-In the project directory, you can run:
+- **🧠 LangGraph AI Orchestration** - Intelligent routing between specialized tutoring nodes
+- **💬 Real-time Chat** - Socket.IO powered conversations with AI tutor
+- **🔐 JWT Authentication** - Secure user sessions and data protection
+- **📊 Supabase Integration** - Scalable database for user data and sessions
+- **🎯 4 AI Tutoring Modes:**
+  - **Code Feedback** - Analyze and improve code quality
+  - **Concept Explainer** - Learn programming concepts
+  - **Quiz Generator** - Interactive knowledge testing
+  - **Mistake Analyzer** - Track learning progress
 
-### `npm start`
+## 🛠️ Tech Stack
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+- **Runtime:** Node.js + TypeScript
+- **Framework:** Express.js
+- **Real-time:** Socket.IO
+- **Database:** Supabase (PostgreSQL)
+- **AI:** OpenAI GPT-4 + LangGraph
+- **Auth:** JWT with bcrypt
+- **Security:** Helmet, CORS, Rate Limiting
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+## ⚡ Quick Start
 
-### `npm test`
+### 1. Environment Setup
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Create a `.env` file:
 
-### `npm run build`
+```bash
+# Server Configuration
+PORT=5000
+NODE_ENV=development
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+# Database Configuration (Supabase)
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_KEY=your_supabase_service_key
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+# OpenAI Configuration
+OPENAI_API_KEY=your_openai_api_key
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+# JWT Configuration
+JWT_SECRET=your_super_secret_jwt_key
+JWT_REFRESH_SECRET=your_refresh_secret_key
+JWT_EXPIRES_IN=24h
+JWT_REFRESH_EXPIRES_IN=7d
 
-### `npm run eject`
+# CORS Configuration
+FRONTEND_URL=http://localhost:3000
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+### 2. Install Dependencies
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```bash
+npm install
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+### 3. Build & Run
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+```bash
+# Development mode with hot reload
+npm run dev
 
-## Learn More
+# Production build
+npm run build
+npm start
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## 📡 API Endpoints
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### Authentication
+- `POST /api/auth/register` - User registration
+- `POST /api/auth/login` - User login
+- `GET /api/auth/me` - Get current user
+- `PUT /api/auth/profile` - Update user profile
+
+### Chat & AI Tutoring
+- `POST /api/chat/message` - Send message to AI tutor
+- `GET /api/chat/sessions` - Get user's chat sessions
+- `POST /api/chat/switch-node` - Switch AI tutoring mode
+- `GET /api/chat/available-nodes` - Get available AI nodes
+
+### Code Analysis
+- `POST /api/code/analyze` - Analyze code with AI feedback
+
+### Learning & Progress
+- `GET /api/learning/paths` - Get learning paths
+- `GET /api/progress/overview` - Get progress overview
+
+## 🔌 Socket.IO Events
+
+### Client → Server
+- `chat:join` - Join a chat session
+- `chat:message` - Send message to AI tutor
+- `chat:switch_node` - Switch tutoring mode
+- `chat:typing` - Send typing indicator
+
+### Server → Client
+- `connection:success` - Connection established
+- `chat:response` - AI tutor response
+- `chat:ai_thinking` - AI processing indicator
+- `chat:node_switched` - Tutoring mode changed
+- `chat:available_nodes` - Available AI nodes
+
+## 🧠 LangGraph Architecture
+
+The AI tutoring system uses LangGraph to orchestrate between specialized nodes:
+
+```
+User Input → Router → [Node Selection] → AI Response
+                            ↓
+┌─────────────────┬─────────────────┬─────────────────┬─────────────────┐
+│  Code Feedback  │ Concept Explain │ Quiz Generator  │ Mistake Analyzer│
+│                 │                 │                 │                 │
+│ • Code Review   │ • Explanations  │ • MCQ Questions │ • Progress Track│
+│ • Bug Detection │ • Examples      │ • Code Puzzles  │ • Weak Areas   │
+│ • Best Practices│ • Tutorials     │ • Instant Quiz  │ • Study Plans  │
+└─────────────────┴─────────────────┴─────────────────┴─────────────────┘
+```
+
+## 📊 Database Schema
+
+The system uses Supabase with the following key tables:
+
+- **users** - User accounts and preferences
+- **chat_sessions** - Conversation sessions
+- **concept_mastery** - Learning progress tracking
+- **learning_paths** - Personalized curricula
+- **quiz_sessions** - Quiz attempts and scores
+
+## 🔒 Security Features
+
+- **JWT Authentication** with refresh tokens
+- **Rate Limiting** to prevent abuse
+- **Input Validation** on all endpoints
+- **CORS Protection** for cross-origin requests
+- **Helmet.js** for security headers
+- **bcrypt** password hashing
+
+## 🚀 Deployment
+
+The backend is designed to be deployed on:
+
+- **Railway** or **Render** for the Node.js app
+- **Supabase** for the database
+- **OpenAI** for AI capabilities
+
+## 🧪 Testing
+
+```bash
+# Test server health
+curl http://localhost:5000/health
+
+# Test API documentation
+curl http://localhost:5000/api
+```
+
+## 📖 Development
+
+### Project Structure
+```
+src/
+├── config/          # Environment & database config
+├── controllers/     # Business logic (future)
+├── middleware/      # Auth, error handling, validation
+├── models/          # Data models (future)
+├── routes/          # API route definitions
+├── services/        # External service integrations
+├── langGraph/       # AI orchestration system
+├── utils/           # Helper functions (future)
+└── index.ts         # Main application entry point
+```
+
+### Key Files
+- `src/index.ts` - Main server setup
+- `src/langGraph/graphManager.ts` - AI orchestration
+- `src/services/socketService.ts` - Real-time chat
+- `src/middleware/auth.ts` - Authentication
+- `src/config/database.ts` - Database operations
+
+## 🎯 Next Steps
+
+To integrate with OpenAI and Supabase:
+
+1. **Get OpenAI API Key** from https://platform.openai.com/
+2. **Create Supabase Project** at https://supabase.com/
+3. **Set up Database Tables** using the schema
+4. **Update Environment Variables**
+5. **Deploy to Production**
+
+## 🤝 Contributing
+
+The backend is designed to be:
+- **Modular** - Easy to add new AI nodes
+- **Scalable** - Ready for production deployment
+- **Extensible** - Support for future features
+
+---
+
+**Built with ❤️ for AI-powered developer education**

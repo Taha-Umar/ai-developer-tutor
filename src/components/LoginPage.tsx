@@ -77,14 +77,7 @@ const LoginPage: React.FC = () => {
           </div>
         )}
 
-        {/* Demo Credentials Info */}
-        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-          <div className="text-sm text-blue-800">
-            <p className="font-medium mb-1">Demo Credentials:</p>
-            <p>Username: <span className="font-mono">demo</span></p>
-            <p>Password: <span className="font-mono">password</span></p>
-          </div>
-        </div>
+ 
 
         {/* Login Form */}
         <form onSubmit={handleSubmit} className="space-y-6">

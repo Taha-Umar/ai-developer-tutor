@@ -1,10 +1,11 @@
 import { create } from 'zustand';
+import { apiService } from '../services/apiService';
 
 interface User {
   id: string;
-  name: string;
-  username: string;
-  email: string;
+  name?: string;
+  username?: string;
+  email?: string;
   preferences?: any; // Will store user preferences from database
 }
 
@@ -27,22 +28,6 @@ interface AuthState {
   clearError: () => void;
 }
 
-// Mock database to store users (will be replaced with real database)
-const mockDatabase: Array<User & { password: string }> = [
-  {
-    id: "user_123",
-    name: "Demo User",
-    username: "demo",
-    email: "demo@example.com",
-    password: "password",
-    preferences: {
-      difficulty: "beginner",
-      language: "english",
-      preferredTech: ["react", "javascript"]
-    }
-  }
-];
-
 // Email validation helper
 const isValidEmail = (email: string): boolean => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -59,42 +44,35 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ isLoading: true, error: null });
     
     try {
-      if (username && password) {
-        // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // Check against mock database
-        const foundUser = mockDatabase.find(
-          user => (user.username === username || user.email === username) && user.password === password
-        );
-        
-        if (foundUser) {
-          const { password: _, ...userWithoutPassword } = foundUser;
-          
-          set({ 
-            user: userWithoutPassword, 
-            isAuthenticated: true, 
-            isLoading: false,
-            error: null 
-          });
-          return true;
-        } else {
-          set({ 
-            error: "Invalid username/email or password", 
-            isLoading: false 
-          });
-          return false;
-        }
-      } else {
+      if (!username || !password) {
         set({ 
           error: "Please enter both username/email and password", 
           isLoading: false 
         });
         return false;
       }
-    } catch (error) {
+
+      const response = await apiService.login(username, password);
+      
+      if (response.user && response.token) {
+        set({ 
+          user: response.user, 
+          isAuthenticated: true, 
+          isLoading: false,
+          error: null 
+        });
+        return true;
+      } else {
+        set({ 
+          error: "Invalid response from server", 
+          isLoading: false 
+        });
+        return false;
+      }
+    } catch (error: any) {
+      const errorMessage = error.message || "Login failed. Please try again.";
       set({ 
-        error: "Login failed. Please try again.", 
+        error: errorMessage, 
         isLoading: false 
       });
       return false;
@@ -107,7 +85,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       const { name, username, email, password, confirmPassword } = data;
       
-      // Validation checks
+      // Client-side validation
       if (!name.trim()) {
         set({ error: "Name is required", isLoading: false });
         return false;
@@ -143,65 +121,57 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         return false;
       }
       
-      // Check if username or email already exists
-      const existingUser = mockDatabase.find(
-        user => user.username === username || user.email === email
-      );
-      
-      if (existingUser) {
-        if (existingUser.username === username) {
-          set({ error: "Username already exists", isLoading: false });
-        } else {
-          set({ error: "Email already exists", isLoading: false });
-        }
-        return false;
-      }
-      
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Create new user and add to mock database
-      const newUser = {
-        id: `user_${Date.now()}`, // Generate unique ID
+      // Call backend API to create user
+      const response = await apiService.signup({
         name: name.trim(),
         username: username.trim(),
         email: email.trim(),
-        password: password,
-        preferences: {
-          difficulty: "beginner",
-          language: "english",
-          preferredTech: []
-        }
-      };
-      
-      // Add to mock database (in real app, this would be an API call)
-      mockDatabase.push(newUser);
-      
-      set({ 
-        isLoading: false,
-        error: null 
+        password,
+        confirmPassword
       });
       
-      return true;
+      if (response.user && response.token) {
+        set({ 
+          isLoading: false,
+          error: null 
+        });
+        return true;
+      } else {
+        set({ 
+          error: "Invalid response from server", 
+          isLoading: false 
+        });
+        return false;
+      }
       
-    } catch (error) {
+    } catch (error: any) {
+      const errorMessage = error.message || "Signup failed. Please try again.";
       set({ 
-        error: "Signup failed. Please try again.", 
+        error: errorMessage, 
         isLoading: false 
       });
       return false;
     }
   },
 
-  logout: () => {
-    set({ 
-      user: null, 
-      isAuthenticated: false, 
-      error: null 
-    });
+  logout: async () => {
+    set({ isLoading: true });
+    
+    try {
+      await apiService.logout();
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      set({ 
+        user: null, 
+        isAuthenticated: false, 
+        error: null,
+        isLoading: false
+      });
+    }
   },
 
   clearError: () => {
     set({ error: null });
-  }
+  },
 })); 
