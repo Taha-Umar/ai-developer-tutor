@@ -1,4 +1,4 @@
-# AI Developer Tutor - Backend
+# AI Developer Tutor 
 
 A powerful Node.js backend for the AI Developer Tutor platform, featuring LangGraph orchestration, real-time chat, and personalized learning experiences.
 
