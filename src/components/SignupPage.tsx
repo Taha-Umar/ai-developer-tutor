@@ -46,17 +46,17 @@ const SignupPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 flex flex-col md:flex-row items-start md:items-center justify-start md:justify-center p-4">
+      {/* Left: Signup Card */}
+      <div className="auth-glass-card w-full md:w-[420px] p-8 md:p-8 relative z-10">
+        <div className="auth-accent-bar" />
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-purple-100 rounded-full mb-4">
-            <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-            </svg>
+        <div className="mb-8">
+          <div className="auth-section-header">
+            <span className="auth-header-accent"></span>
+            Create Account
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Account</h1>
-          <p className="text-gray-600">Join the AI Developer Tutor community</p>
+          <p className="text-gray-600 text-left pl-3">Join the AI Developer Tutor community</p>
         </div>
 
         {/* Error Message */}
@@ -206,7 +206,7 @@ const SignupPage: React.FC = () => {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-purple-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-purple-700 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+            className="w-full py-3 px-4 auth-btn flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? (
               <>
@@ -223,8 +223,8 @@ const SignupPage: React.FC = () => {
         </form>
 
         {/* Footer */}
-        <div className="mt-8 text-center">
-          <p className="text-sm text-gray-600">
+        <div className="mt-8 text-left pl-3">
+          <p className="text-sm text-gray-600 mb-4">
             Already have an account?{' '}
             <Link
               to="/"
@@ -233,6 +233,45 @@ const SignupPage: React.FC = () => {
               Sign in
             </Link>
           </p>
+          <p className="text-sm text-gray-500">
+            Welcome to your personalized AI coding tutor platform
+          </p>
+        </div>
+      </div>
+      {/* Right: Illustration, Code Window, Tagline (hidden on mobile) */}
+      <div className="hidden md:flex flex-col items-center justify-center flex-1 h-full pl-12 pr-4 z-0">
+        {/* SVG Illustration */}
+        <div className="mb-8">
+          <svg width="220" height="180" viewBox="0 0 220 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="110" cy="160" rx="90" ry="18" fill="#a78bfa22" />
+            <rect x="60" y="40" width="100" height="60" rx="16" fill="#fff" stroke="#a78bfa" strokeWidth="2" />
+            <rect x="75" y="55" width="70" height="10" rx="4" fill="#a78bfa" fillOpacity="0.2" />
+            <rect x="75" y="70" width="40" height="8" rx="4" fill="#38bdf8" fillOpacity="0.2" />
+            <circle cx="110" cy="30" r="18" fill="#a78bfa" fillOpacity="0.7" stroke="#38bdf8" strokeWidth="3" />
+            <ellipse cx="110" cy="30" rx="7" ry="7" fill="#fff" />
+            <rect x="100" y="22" width="20" height="6" rx="3" fill="#fff" fillOpacity="0.5" />
+          </svg>
+        </div>
+        {/* Mock Code Window */}
+        <div className="w-[320px] max-w-full bg-white/80 rounded-xl shadow-lg border border-[#a78bfa55] p-5 mb-8 font-mono text-sm text-gray-800 relative overflow-hidden">
+          <div className="flex space-x-2 mb-3">
+            <span className="w-3 h-3 bg-red-400 rounded-full inline-block"></span>
+            <span className="w-3 h-3 bg-yellow-400 rounded-full inline-block"></span>
+            <span className="w-3 h-3 bg-green-400 rounded-full inline-block"></span>
+          </div>
+          <div className="animate-pulse">
+            <span className="text-purple-600">&gt; </span>
+            <span>AI is ready to help you code...</span>
+          </div>
+          <div className="flex mt-2 space-x-1 animate-typing">
+            <span className="w-2 h-2 bg-gray-400 rounded-full loading-dot"></span>
+            <span className="w-2 h-2 bg-gray-400 rounded-full loading-dot"></span>
+            <span className="w-2 h-2 bg-gray-400 rounded-full loading-dot"></span>
+          </div>
+        </div>
+        {/* Tagline */}
+        <div className="text-2xl font-extrabold text-gray-800 text-center leading-snug max-w-md">
+          Level up your coding with <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-blue-400">AI-powered guidance</span>.
         </div>
       </div>
     </div>

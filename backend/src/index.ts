@@ -109,7 +109,7 @@ class AITutorServer {
     this.app.use('/api/code', authMiddleware, codeRoutes);
     this.app.use('/api/learning', authMiddleware, learningRoutes);
     this.app.use('/api/progress', authMiddleware, progressRoutes);
-    this.app.use('/api/quiz', quizRoutes);
+    this.app.use('/api/quiz', authMiddleware, quizRoutes);
 
     // API documentation endpoint
     this.app.get('/api', (req, res) => {

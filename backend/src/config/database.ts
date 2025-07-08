@@ -409,6 +409,18 @@ class DatabaseService {
     return data || [];
   }
 
+  public async deleteCodeSubmission(submissionId: string): Promise<boolean> {
+    const { error } = await this.supabase
+      .from('code_submissions')
+      .delete()
+      .eq('id', submissionId);
+    if (error) {
+      console.error('Error deleting code submission:', error);
+      return false;
+    }
+    return true;
+  }
+
   // Quiz Session operations
   public async createQuizSession(session: Omit<QuizSession, 'id' | 'created_at'>): Promise<QuizSession | null> {
     const now = new Date().toISOString();
@@ -448,6 +460,18 @@ class DatabaseService {
       return [];
     }
     return data || [];
+  }
+
+  public async deleteQuizSession(sessionId: string): Promise<boolean> {
+    const { error } = await this.supabase
+      .from('quiz_sessions')
+      .delete()
+      .eq('id', sessionId);
+    if (error) {
+      console.error('Error deleting quiz session:', error);
+      return false;
+    }
+    return true;
   }
 
   // Test database connection

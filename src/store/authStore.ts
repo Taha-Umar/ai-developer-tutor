@@ -26,6 +26,7 @@ interface AuthState {
   signup: (data: SignupData) => Promise<boolean>;
   logout: () => void;
   clearError: () => void;
+  setUser: (user: User) => void;
 }
 
 // Email validation helper
@@ -174,4 +175,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   clearError: () => {
     set({ error: null });
   },
+
+  setUser: (user: User) => set({ user }),
 })); 

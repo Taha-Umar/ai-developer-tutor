@@ -39,7 +39,8 @@ class ApiService {
 
   private async makeRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const token = this.getAuthToken();
-    
+    // Debug log for token and endpoint
+    console.log('API Request:', endpoint, '| Auth token:', token);
     const config: RequestInit = {
       ...options,
       headers: {
@@ -125,14 +126,16 @@ class ApiService {
   }
 
   // Chat Methods
-  async sendMessage(message: string, userId?: string, sessionId?: string): Promise<ChatResponse> {
+  async sendMessage(message: string, userId?: string, sessionId?: string, context?: any): Promise<ChatResponse> {
     // For now, use the test endpoint that doesn't require authentication
+    const body: any = { message };
+    if (context) body.context = context;
     const response = await fetch('http://localhost:5000/api/test/ai-chat', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ message }),
+      body: JSON.stringify(body),
     });
 
     if (!response.ok) {
@@ -230,14 +233,22 @@ class ApiService {
     return this.makeRequest('/code/submissions');
   }
 
+  async deleteCodeSubmission(submissionId: string): Promise<any> {
+    return this.makeRequest(`/code/${submissionId}`, {
+      method: 'DELETE',
+    });
+  }
+
   // Quiz Sessions
   async createQuizSession(data: {
-    questions: any[];
+    questions?: any[];
     answers?: any[];
     score?: number;
     total_questions?: number;
     completed?: boolean;
     time_taken?: number;
+    topic?: string;
+    difficulty?: string;
   }): Promise<any> {
     return this.makeRequest('/quiz/sessions', {
       method: 'POST',
@@ -254,6 +265,30 @@ class ApiService {
 
   async getQuizSessions(): Promise<any> {
     return this.makeRequest('/quiz/sessions');
+  }
+
+  async deleteQuizSession(sessionId: string): Promise<any> {
+    return this.makeRequest(`/quiz/sessions/${sessionId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async submitQuizAnswers(sessionId: string, answers: any[]): Promise<any> {
+    return this.makeRequest(`/quiz/sessions/${sessionId}/submit`, {
+      method: 'POST',
+      body: JSON.stringify({ answers }),
+    });
+  }
+
+  async getQuizSessionById(sessionId: string): Promise<any> {
+    return this.makeRequest(`/quiz/sessions/${sessionId}`);
+  }
+
+  async updateUserPreferences(preferences: any): Promise<any> {
+    return this.makeRequest('/auth/profile', {
+      method: 'PUT',
+      body: JSON.stringify({ preferences }),
+    });
   }
 }
 

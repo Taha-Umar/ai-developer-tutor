@@ -71,7 +71,7 @@ class LangGraphManager {
   }
 
   // Execute Code Feedback Node with real OpenAI
-  private async executeCodeFeedbackNode(state: TutorState): Promise<string> {
+  public async executeCodeFeedbackNode(state: TutorState): Promise<string> {
     const difficulty = state.context.user_preferences?.difficulty || 'beginner';
     const languages = state.context.user_preferences?.preferred_languages?.join(', ') || 'JavaScript';
     const userInput = state.context.user_input;
@@ -371,6 +371,50 @@ ${userInput.toLowerCase().includes('mistake') || userInput.toLowerCase().include
         };
       }
 
+      // Context-aware quiz explanation logic (final, robust)
+      if (currentContext && currentContext.quizContext && /(question\s*\d+|q\d+|answer to \d+)/i.test(userInput)) {
+        const quiz = currentContext.quizContext;
+        // Extract question number from user input
+        let match = userInput.match(/question\s*(\d+)/i);
+        if (!match) match = userInput.match(/q(\d+)/i);
+        if (!match) match = userInput.match(/answer to (\d+)/i);
+        if (match) {
+          const qNum = parseInt(match[1], 10) - 1; // 0-based index
+          if (quiz.questions && quiz.questions[qNum]) {
+            const q = quiz.questions[qNum];
+            // Extract answer labels (A, B, C, D) from user input
+            const answerMatch = userInput.match(/\b([A-D])\b/gi);
+            const correctIdx = typeof q.correct_answer === 'string' ? q.correct_answer.toUpperCase().charCodeAt(0) - 65 : -1;
+            let response = `Q${qNum + 1}: ${q.question}\n\nOptions:\n${q.options.map((opt: string, idx: number) => `${String.fromCharCode(65 + idx)}) ${opt}`).join('\n')}\n\nCorrect Answer: ${q.correct_answer}\n\nExplanation: ${q.explanation}`;
+            // If user asks 'why not X', add explanation for that option
+            if (answerMatch && answerMatch.length > 0) {
+              const uniqueLabels = [...new Set(answerMatch.map(l => l.toUpperCase()))];
+              for (const label of uniqueLabels) {
+                const idx = label.charCodeAt(0) - 65;
+                if (idx !== correctIdx && q.options[idx]) {
+                  response += `\n\nOption ${label}) ${q.options[idx]} is not correct because it does not satisfy the requirements of the question or is not the best answer.`;
+                }
+              }
+            }
+            return {
+              response,
+              current_node: 'quiz-generator',
+              available_transitions: ['code-feedback', 'concept-explainer', 'quiz-generator', 'mistake-analyzer'],
+              session_context: currentContext,
+              metadata: { timestamp: new Date().toISOString(), iteration_count: 0 }
+            };
+          } else {
+            return {
+              response: `Sorry, your current quiz does not have a question ${qNum + 1}. Please check the question number and try again.`,
+              current_node: 'quiz-generator',
+              available_transitions: ['code-feedback', 'concept-explainer', 'quiz-generator', 'mistake-analyzer'],
+              session_context: currentContext,
+              metadata: { timestamp: new Date().toISOString(), iteration_count: 0 }
+            };
+          }
+        }
+      }
+
       // Initialize state
       const state: TutorState = {
         current_node: 'router',
@@ -474,6 +518,69 @@ ${userInput.toLowerCase().includes('mistake') || userInput.toLowerCase().include
     } catch (error) {
       console.error('LangGraph test failed:', error);
       return false;
+    }
+  }
+
+  // Public method to generate quiz questions using OpenAI
+  public async generateQuizQuestions({ topic, total_questions = 5, userId, difficulty }: { topic: string, total_questions?: number, userId: string, difficulty?: string }): Promise<any[]> {
+    // Fetch user preferences for better quiz generation
+    let userPreferences;
+    try {
+      const user = await db.getUserById(userId);
+      userPreferences = user?.preferences || {};
+    } catch {
+      userPreferences = {};
+    }
+    const quizDifficulty = (difficulty || userPreferences.difficulty || 'beginner').toLowerCase();
+    const difficultyLabel = quizDifficulty.charAt(0).toUpperCase() + quizDifficulty.slice(1);
+    const languages = userPreferences.preferred_languages?.join(', ') || 'JavaScript';
+    const prompt = `You are an expert programming tutor in Quiz Mode. Create ${total_questions} multiple choice questions about "${topic}" for a ${difficultyLabel.toUpperCase()} level student using ${languages}. Make the questions appropriately challenging for a ${difficultyLabel} level. Each question should have 4 options (a, b, c, d) and indicate the correct answer and a brief explanation. Respond in JSON array format: [{question, options: {a, b, c, d}, answer, explanation}].`;
+    try {
+      console.log('[QuizGen] Prompt:', prompt);
+      const response = await this.openai.chat.completions.create({
+        model: "gpt-3.5-turbo",
+        messages: [{ role: "user", content: prompt }],
+        max_tokens: 1200,
+        temperature: 0.8,
+      });
+      console.log('[QuizGen] Raw OpenAI response:', response.choices[0]?.message?.content);
+      let content = response.choices[0]?.message?.content || '';
+      // Remove triple backticks and optional 'json'
+      content = content.replace(/```json|```/gi, '').trim();
+      const match = content.match(/\[.*\]/s);
+      let rawQuestions = [];
+      if (match) {
+        rawQuestions = JSON.parse(match[0]);
+      } else {
+        // Fallback: return a single question if parsing fails
+        console.warn('[QuizGen] No valid JSON array found in OpenAI response.');
+        return [{ question: `No quiz generated for topic: ${topic}` }];
+      }
+      // Map to QuizQuestion interface
+      const mappedQuestions = rawQuestions.map((q: any, idx: number) => {
+        // Convert options object to array if needed
+        let optionsArr: string[] = [];
+        if (q.options && typeof q.options === 'object' && !Array.isArray(q.options)) {
+          optionsArr = ['a', 'b', 'c', 'd'].map(key => q.options[key] || '');
+        } else if (Array.isArray(q.options)) {
+          optionsArr = q.options;
+        }
+        return {
+          id: `${Date.now()}_${idx}`,
+          type: 'mcq',
+          question: q.question || '',
+          options: optionsArr,
+          code_snippet: q.code_snippet || '',
+          correct_answer: q.answer || '',
+          explanation: q.explanation || '',
+          difficulty: quizDifficulty,
+          concepts: [topic],
+        };
+      });
+      return mappedQuestions;
+    } catch (error) {
+      console.error('[QuizGen] OpenAI API error or JSON parse error:', error);
+      return [{ question: `Failed to generate quiz for topic: ${topic}` }];
     }
   }
 }

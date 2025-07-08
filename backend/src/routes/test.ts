@@ -35,19 +35,19 @@ router.post('/test-post', (req: Request, res: Response) => {
 // Test LangGraph AI orchestration without authentication
 router.post('/ai-chat', async (req: Request, res: Response) => {
   try {
-    const { message } = req.body;
+    const { message, context } = req.body;
     const userId = 'test_user_123';
     const sessionId = 'test_session_' + Date.now();
     
     // Import LangGraph manager
     const { langGraphManager } = require('../langGraph/graphManager');
     
-    // Execute the graph
+    // Execute the graph, passing context if present
     const result = await langGraphManager.executeGraph(
       userId,
       sessionId, 
       message || 'Hello, I need help with programming',
-      {}
+      context || {}
     );
     
     res.json({
